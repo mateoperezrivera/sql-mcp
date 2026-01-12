@@ -31,6 +31,34 @@ DB_CONFIG = {
 # Global connection object
 conn = None
 
+# Read-only validation
+ALLOWED_KEYWORDS = ['SELECT', 'WITH', 'DECLARE']
+FORBIDDEN_KEYWORDS = ['INSERT', 'UPDATE', 'DELETE', 'DROP', 'CREATE', 'ALTER', 'TRUNCATE', 'EXEC']
+
+
+def is_readonly_query(query: str) -> tuple[bool, str]:
+    """Validate that query is read-only (SELECT only)"""
+    query_upper = query.strip().upper()
+    
+    # Remove comments and leading whitespace
+    lines = [line.split('--')[0].strip() for line in query_upper.split('\n')]
+    query_clean = ' '.join(lines).strip()
+    
+    if not query_clean:
+        return False, "Empty query"
+    
+    # Check if starts with allowed keyword
+    starts_with_allowed = any(query_clean.startswith(k) for k in ALLOWED_KEYWORDS)
+    if not starts_with_allowed:
+        return False, f"Query must start with one of: {', '.join(ALLOWED_KEYWORDS)}"
+    
+    # Check for forbidden keywords
+    for keyword in FORBIDDEN_KEYWORDS:
+        if keyword in query_upper:
+            return False, f"Query contains forbidden operation: {keyword}"
+    
+    return True, "OK"
+
 
 def get_connection():
     """Get or create database connection using Azure token"""
@@ -101,11 +129,16 @@ def execute_sql(query: str) -> str:
 
 @mcp.tool()
 async def execute_query(query: str) -> str:
-    """Execute a SQL query against the database.
+    """Execute a READ-ONLY SQL query (SELECT only).
     
     Args:
-        query: The SQL query to execute
+        query: The SQL query to execute (must be SELECT)
     """
+    # Validate query is read-only
+    is_valid, message = is_readonly_query(query)
+    if not is_valid:
+        return f"Error: {message}"
+    
     return execute_sql(query)
 
 
