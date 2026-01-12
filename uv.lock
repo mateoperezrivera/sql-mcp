@@ -982,6 +982,7 @@ dependencies = [
     { name = "azure-identity" },
     { name = "mcp" },
     { name = "pyodbc" },
+    { name = "python-dotenv" },
     { name = "uvicorn" },
 ]
 
@@ -998,6 +999,7 @@ requires-dist = [
     { name = "pyodbc", specifier = ">=5.0.0" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=7.0" },
     { name = "pytest-asyncio", marker = "extra == 'dev'", specifier = ">=0.21.0" },
+    { name = "python-dotenv", specifier = ">=1.0.0" },
     { name = "uvicorn", specifier = ">=0.24.0" },
 ]
 provides-extras = ["dev"]
